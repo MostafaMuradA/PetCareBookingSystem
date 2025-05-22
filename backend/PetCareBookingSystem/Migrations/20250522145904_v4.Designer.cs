@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PetCareBookingSystem.Models;
 
@@ -11,9 +12,11 @@ using PetCareBookingSystem.Models;
 namespace PetCareBookingSystem.Migrations
 {
     [DbContext(typeof(PetCareDBContext))]
-    partial class PetCareDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250522145904_v4")]
+    partial class v4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
