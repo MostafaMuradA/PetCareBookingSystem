@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
-
-import { RegisterComponent } from "../app/components/register/register.component";
+import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RegisterComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss'],
+  standalone: true,
+  imports: [RouterOutlet, CommonModule]
 })
 export class AppComponent {
-  title = 'frontend';
+  title = 'Pet Care Booking System';
 }

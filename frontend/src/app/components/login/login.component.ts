@@ -1,37 +1,61 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-   imports:[NgIf,FormsModule,ReactiveFormsModule]
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule]
 })
-export class LoginComponent implements OnInit {
-  loginForm: FormGroup;
+export class LoginComponent implements OnInit, OnDestroy {
+  loginForm!: FormGroup;
   loading = false;
   error = '';
+  registrationSuccess = false;
+  showPassword = false;
+  returnUrl: string = '/dashboard';
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) {
-    this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
-    });
+    this.initForm();
 
-    // Redirect if already logged in
+    // Get return url from route parameters or default to '/dashboard'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+
+    // Redirect to dashboard if already logged in
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/']);
+      this.router.navigate([this.returnUrl]);
     }
   }
 
-  ngOnInit(): void {}
+  private initForm(): void {
+    this.loginForm = this.formBuilder.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  ngOnInit() {
+    // Check if user was redirected from registration
+    this.route.queryParams.subscribe(params => {
+      this.registrationSuccess = params['registered'] === 'true';
+    });
+  }
+
+  ngOnDestroy(): void {
+    // Clear form data when component is destroyed
+    if (this.loginForm) {
+      this.loginForm.reset();
+    }
+  }
 
   onSubmit(): void {
     if (this.loginForm.invalid) {
@@ -42,13 +66,30 @@ export class LoginComponent implements OnInit {
     this.error = '';
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: () => {
-        this.router.navigate(['/']);
+      next: (response) => {
+        console.log('Login successful:', response);
+        this.router.navigate([this.returnUrl]);
       },
-      error: error => {
-        this.error = error?.error?.message || 'Login failed';
+      error: (error) => {
+        console.error('Login error:', error);
+        if (error.status === 401) {
+          this.error = 'Invalid email or password';
+        } else if (error.error?.message) {
+          this.error = error.error.message;
+        } else {
+          this.error = 'An error occurred during login. Please try again.';
+        }
         this.loading = false;
       }
     });
+  }
+
+  // Reset form when navigating away
+  resetForm(): void {
+    this.loginForm.reset();
+    this.error = '';
+    this.loading = false;
+    this.showPassword = false;
+    this.registrationSuccess = false;
   }
 }

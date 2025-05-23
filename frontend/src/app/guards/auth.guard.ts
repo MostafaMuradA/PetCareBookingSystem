@@ -1,30 +1,22 @@
-import { Injectable } from '@angular/core';
-import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  constructor(
-    private router: Router,
-    private authService: AuthService
-  ) {}
-
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const currentUser = this.authService.currentUserValue;
-    
-    if (currentUser) {
-      // Check if route has roles data and user has required role
-      if (route.data['roles'] && !route.data['roles'].includes(currentUser.role)) {
-        this.router.navigate(['/']);
-        return false;
-      }
-
-      return true;
+export const authGuard: CanActivateFn = (route, state) => {
+  const router = inject(Router);
+  const authService = inject(AuthService);
+  const currentUser = authService.currentUserValue;
+  
+  if (currentUser) {
+    // Check if route has roles data and user has required role
+    if (route.data['roles'] && !route.data['roles'].includes(currentUser.role)) {
+      router.navigate(['/']);
+      return false;
     }
 
-    this.router.navigate(['/login'], { queryParams: { returnUrl: state.url }});
-    return false;
+    return true;
   }
-} 
+
+  router.navigate(['/login'], { queryParams: { returnUrl: state.url }});
+  return false;
+}; 

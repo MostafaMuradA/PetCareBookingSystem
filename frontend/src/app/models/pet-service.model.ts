@@ -4,4 +4,5 @@ export interface PetService {
     description: string;
     price: number;
     duration: number;
+    serviceImg?: string;
 } 

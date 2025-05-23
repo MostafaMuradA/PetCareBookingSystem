@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetCareBookingSystem.Models;
 using PetCareBookingSystem.Repositories;
-using PetCareBookingSystem.DTOs;
+using PetCareBookingSystem.DTOs.PetServicesDTO;
 using PetCareBookingSystem.Constants;
 
 namespace PetCareBookingSystem.Controllers
@@ -31,7 +31,8 @@ namespace PetCareBookingSystem.Controllers
                 Name = s.ServiceName,
                 Description = s.Description,
                 Price = s.Price,
-                Duration = s.Duration
+                Duration = s.Duration,
+                ServiceImg = s.ServiceImg
             });
             return Ok(serviceDTOs);
         }
@@ -49,7 +50,8 @@ namespace PetCareBookingSystem.Controllers
                 Name = service.ServiceName,
                 Description = service.Description,
                 Price = service.Price,
-                Duration = service.Duration
+                Duration = service.Duration,
+                ServiceImg = service.ServiceImg
             };
             return Ok(serviceDTO);
         }
@@ -76,7 +78,8 @@ namespace PetCareBookingSystem.Controllers
                 Name = service.ServiceName,
                 Description = service.Description,
                 Price = service.Price,
-                Duration = service.Duration
+                Duration = service.Duration,
+                ServiceImg = service.ServiceImg
             };
 
             return CreatedAtAction(nameof(GetById), new { id = service.Id }, serviceDTO);

@@ -1,0 +1,81 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ isAdmin ? 'All Bookings' : 'My Bookings' }}</h2>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="!loading">
+    <div class="col-12">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Service</th>
+              <th>Date</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th *ngIf="isAdmin">Customer</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let booking of bookings">
+              <td>{{ booking.serviceName }}</td>
+              <td>{{ booking.bookingDate | date:'medium' }}</td>
+              <td>${{ booking.price }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning': booking.status === 'Pending',
+                  'bg-success': booking.status === 'Approved',
+                  'bg-danger': booking.status === 'Rejected',
+                  'bg-info': booking.status === 'Completed'
+                }">
+                  {{ booking.status }}
+                </span>
+              </td>
+              <td *ngIf="isAdmin">{{ booking.userName }}</td>
+              <td>
+                <div class="btn-group" *ngIf="isAdmin">
+                  <button class="btn btn-sm btn-success" 
+                          (click)="updateStatus(booking.id, 'Approved')"
+                          [disabled]="booking.status !== 'Pending'">
+                    Approve
+                  </button>
+                  <button class="btn btn-sm btn-danger" 
+                          (click)="updateStatus(booking.id, 'Rejected')"
+                          [disabled]="booking.status !== 'Pending'">
+                    Reject
+                  </button>
+                  <button class="btn btn-sm btn-info" 
+                          (click)="updateStatus(booking.id, 'Completed')"
+                          [disabled]="booking.status !== 'Approved'">
+                    Complete
+                  </button>
+                </div>
+                <button *ngIf="!isAdmin" 
+                        class="btn btn-sm btn-danger" 
+                        (click)="deleteBooking(booking.id)"
+                        [disabled]="booking.status !== 'Pending'">
+                  Cancel
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="bookings.length === 0" class="text-center mt-4">
+        <p class="text-muted">No bookings found.</p>
+      </div>
+    </div>
+  </div>
+</div> 

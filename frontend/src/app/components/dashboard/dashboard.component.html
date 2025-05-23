@@ -1,0 +1,95 @@
+<div class="dashboard">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h3>Pet Care</h3>
+    </div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" (click)="navigateToDashboard()">
+          <i class="fas fa-home"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="isAdmin">
+        <a class="nav-link" (click)="navigateToServices()">
+          <i class="fas fa-paw"></i> Manage Services
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="isAdmin">
+        <a class="nav-link" (click)="navigateToAddService()">
+          <i class="fas fa-plus"></i> Add Service
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="!isAdmin">
+        <a class="nav-link" (click)="navigateToBookings()">
+          <i class="fas fa-calendar"></i> My Bookings
+        </a>
+      </li>
+      <li class="nav-item" *ngIf="isAdmin">
+        <a class="nav-link" (click)="navigateToBookings()">
+          <i class="fas fa-calendar-check"></i> Manage Bookings
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" (click)="logout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <h1>Welcome to Pet Care Services</h1>
+      <div class="user-info">
+        <span class="user-role">{{ isAdmin ? 'Admin' : 'Customer' }}</span>
+      </div>
+    </header>
+
+    <!-- Services Grid -->
+    <div class="services-container">
+      <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+      </div>
+
+      <div *ngIf="loading" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <div class="row g-4" *ngIf="!loading">
+        <div class="col-md-4" *ngFor="let service of services">
+          <div class="service-card">
+            <div class="service-card-image">
+              <img [src]="getServiceImageUrl(service.serviceImg)" [alt]="service.name">
+            </div>
+            <div class="service-card-content">
+              <h3>{{ service.name }}</h3>
+              <p>{{ service.description }}</p>
+              <div class="service-details">
+                <span class="price">${{ service.price }}</span>
+                <span class="duration">{{ service.duration }} min</span>
+              </div>
+              <div class="service-actions">
+                <button class="btn btn-primary" (click)="bookService(service.id)" *ngIf="!isAdmin">
+                  Book Now
+                </button>
+                <ng-container *ngIf="isAdmin">
+                  <button class="btn btn-outline-primary me-2" (click)="onEdit(service.id)">
+                    Edit
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="deleteService(service.id)">
+                    Delete
+                  </button>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

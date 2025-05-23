@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { PetService } from '../../models/pet-service.model';
 import { PetServiceService } from '../../services/pet-service.service';
-import { Router } from '@angular/router';
-import { NgFor, NgIf } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-pet-service-list',
   templateUrl: './pet-service-list.component.html',
   styleUrls: ['./pet-service-form.component.scss'],
-  imports:[NgIf,FormsModule,ReactiveFormsModule,NgFor]
+  standalone: true,
+  imports: [CommonModule, RouterModule]
 })
 export class PetServiceListComponent implements OnInit {
   services: PetService[] = [];
@@ -40,6 +41,15 @@ export class PetServiceListComponent implements OnInit {
     });
   }
 
+  getServiceImageUrl(serviceImg: string | undefined): string {
+    if (!serviceImg) {
+      // Use the default image from frontend assets with relative path
+      return './assets/images/default-service.jpg';
+    }
+    // Use the image from backend wwwroot
+    return `${environment.apiUrl}/images/${serviceImg}`;
+  }
+
   onEdit(id: number): void {
     this.router.navigate(['/services/edit', id]);
   }
@@ -52,6 +62,7 @@ export class PetServiceListComponent implements OnInit {
         },
         error: (error) => {
           this.error = 'Error deleting service';
+          this.loading = false;
           console.error('Error:', error);
         }
       });

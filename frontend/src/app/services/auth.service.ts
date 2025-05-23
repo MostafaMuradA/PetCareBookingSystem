@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { User, LoginRequest, RegisterRequest } from '../models/user.model';
 import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
@@ -33,19 +33,37 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/login`, credentials, { withCredentials: true })
-      .pipe(
-        tap(user => {
-          if (isPlatformBrowser(this.platformId)) {
-            localStorage.setItem('currentUser', JSON.stringify(user));
-          }
-          this.currentUserSubject.next(user);
-        })
-      );
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    
+    return this.http.post<User>(`${this.apiUrl}/login`, credentials, { 
+      headers: headers,
+      withCredentials: true 
+    }).pipe(
+      tap(user => {
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('currentUser', JSON.stringify(user));
+        }
+        this.currentUserSubject.next(user);
+      }),
+      catchError(error => {
+        console.error('Login error:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   register(userData: RegisterRequest): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/register`, userData, { withCredentials: true });
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    
+    return this.http.post<User>(`${this.apiUrl}/register`, userData, { 
+      headers: headers,
+      withCredentials: true 
+    }).pipe(
+      catchError(error => {
+        console.error('Registration error:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   logout(): void {
@@ -56,7 +74,8 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.currentUserValue;
+    const currentUser = this.currentUserValue;
+    return !!currentUser && !!currentUser.token;
   }
 
   hasRole(role: string): boolean {

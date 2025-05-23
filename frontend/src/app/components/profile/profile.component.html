@@ -1,0 +1,123 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>Update Profile</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
+            <div class="mb-3">
+              <label for="userName" class="form-label">Username</label>
+              <input
+                type="text"
+                class="form-control"
+                id="userName"
+                formControlName="userName"
+                [class.is-invalid]="profileForm.get('userName')?.invalid && profileForm.get('userName')?.touched"
+              >
+              <div class="invalid-feedback" *ngIf="profileForm.get('userName')?.errors?.['minlength']">
+                Username must be at least 3 characters long
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="phoneNumber" class="form-label">Phone Number</label>
+              <input
+                type="text"
+                class="form-control"
+                id="phoneNumber"
+                formControlName="phoneNumber"
+                [class.is-invalid]="profileForm.get('phoneNumber')?.invalid && profileForm.get('phoneNumber')?.touched"
+              >
+              <div class="invalid-feedback" *ngIf="profileForm.get('phoneNumber')?.errors?.['pattern']">
+                Please enter a valid Egyptian phone number
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="fullName" class="form-label">Full Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="fullName"
+                formControlName="fullName"
+              >
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="profileForm.invalid || loading"
+            >
+              <span class="spinner-border spinner-border-sm me-1" *ngIf="loading"></span>
+              Update Profile
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>Change Password</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+            <div class="mb-3">
+              <label for="currentPassword" class="form-label">Current Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="currentPassword"
+                formControlName="currentPassword"
+                [class.is-invalid]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched"
+              >
+              <div class="invalid-feedback" *ngIf="passwordForm.get('currentPassword')?.errors?.['required']">
+                Current password is required
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">New Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="newPassword"
+                formControlName="newPassword"
+                [class.is-invalid]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
+              >
+              <div class="invalid-feedback" *ngIf="passwordForm.get('newPassword')?.errors?.['pattern']">
+                Password must be at least 8 characters long and include uppercase, lowercase, number, and special character
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="confirmNewPassword"
+                formControlName="confirmNewPassword"
+                [class.is-invalid]="passwordForm.get('confirmNewPassword')?.touched && passwordForm.errors?.['mismatch']"
+              >
+              <div class="invalid-feedback" *ngIf="passwordForm.errors?.['mismatch']">
+                Passwords do not match
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="passwordForm.invalid || changingPassword"
+            >
+              <span class="spinner-border spinner-border-sm me-1" *ngIf="changingPassword"></span>
+              Change Password
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

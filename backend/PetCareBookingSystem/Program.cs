@@ -34,7 +34,7 @@ namespace PetCareBookingSystem
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             //config to Database
-            builder.Services.AddDbContext<PetCareDBContext>(op => 
+            builder.Services.AddDbContext<PetCareDBContext>(op =>
             op.UseLazyLoadingProxies()
               .UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             //Roles
@@ -59,7 +59,7 @@ namespace PetCareBookingSystem
                  };
              });
 
-            builder.Services.AddScoped<IPetServiceRepository,PetServiceRepository>();
+            builder.Services.AddScoped<IPetServiceRepository, PetServiceRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
 
             var app = builder.Build();
@@ -84,7 +84,8 @@ namespace PetCareBookingSystem
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseStaticFiles(); // This serves files from wwwroot
+            //app.UseRouting();
             app.MapControllers();
 
             app.Run();

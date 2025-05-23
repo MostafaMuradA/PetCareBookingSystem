@@ -1,43 +1,61 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { passwordMatchValidator } from '../../validators/password-match.validator';
-import { NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss'],
-  imports:[NgIf,FormsModule,ReactiveFormsModule ]
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule]
 })
-export class RegisterComponent implements OnInit {
-  registerForm: FormGroup;
+export class RegisterComponent implements OnDestroy {
+  registerForm!: FormGroup;
   loading = false;
   error = '';
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
+    // Initialize form with empty values
+    this.initForm();
+
+    // Redirect to dashboard if already logged in
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
+
+  private initForm(): void {
     this.registerForm = this.formBuilder.group({
       userName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
-      phoneNumber: ['', Validators.required]
+      phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{11}$')]]
     }, {
-      validators: passwordMatchValidator
+      validator: this.passwordMatchValidator
     });
+  }
 
-    // Redirect if already logged in
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/']);
+  ngOnDestroy(): void {
+    // Clear form data when component is destroyed
+    if (this.registerForm) {
+      this.registerForm.reset();
     }
   }
 
-  ngOnInit(): void {}
+  passwordMatchValidator(g: FormGroup) {
+    return g.get('password')?.value === g.get('confirmPassword')?.value
+      ? null
+      : { passwordMismatch: true };
+  }
 
   onSubmit(): void {
     if (this.registerForm.invalid) {
@@ -49,14 +67,32 @@ export class RegisterComponent implements OnInit {
 
     this.authService.register(this.registerForm.value).subscribe({
       next: () => {
+        // Navigate to login with success message
         this.router.navigate(['/login'], {
           queryParams: { registered: true }
         });
       },
       error: error => {
-        this.error = error?.error?.message || 'Registration failed';
+        this.error = error.error?.message || 'Registration failed';
         this.loading = false;
       }
     });
+  }
+
+  togglePasswordVisibility(field: 'password' | 'confirmPassword'): void {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+    } else {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
+  }
+
+  // Reset form when navigating away
+  resetForm(): void {
+    this.registerForm.reset();
+    this.error = '';
+    this.loading = false;
+    this.showPassword = false;
+    this.showConfirmPassword = false;
   }
 }

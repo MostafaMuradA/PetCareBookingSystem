@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PetCareBookingSystem.DTOs.AccountsDTO;
 using PetCareBookingSystem.Models;
 using PetCareBookingSystem.Constants;
-using PetCareBookingSystem.Services;
 
 namespace PetCareBookingSystem.Controllers
 {
@@ -19,18 +19,49 @@ namespace PetCareBookingSystem.Controllers
     {
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
-        private readonly IUserService userService;
+        private readonly IConfiguration configuration;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            IUserService userService)
+            IConfiguration configuration)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
-            this.userService = userService;
+            this.configuration = configuration;
         }
 
+        //private async Task<string> GenerateToken(User user)
+        //{
+        //    var roles = await userManager.GetRolesAsync(user);
+
+        //    var claims = new List<Claim>
+        //    {
+        //        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        //        new Claim(ClaimTypes.Email, user.Email),
+        //        new Claim(ClaimTypes.Name, user.UserName ?? ""),
+        //        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        //    };
+
+        //    claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+        //    var key = new SymmetricSecurityKey(
+        //        Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? 
+        //        throw new InvalidOperationException("JWT Key not found in configuration")));
+            
+        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        //    var expires = DateTime.Now.AddMinutes(
+        //        Convert.ToDouble(configuration["Jwt:ExpirationMinutes"] ?? "10080")); // Default 7 days
+
+        //    var token = new JwtSecurityToken(
+        //        issuer: configuration["Jwt:Issuer"],
+        //        audience: configuration["Jwt:Audience"],
+        //        claims: claims,
+        //        expires: expires,
+        //        signingCredentials: creds);
+
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
         private async Task<string> GenerateToken(User user)
         {
             var roles = await userManager.GetRolesAsync(user);
@@ -115,48 +146,85 @@ namespace PetCareBookingSystem.Controllers
             });
         }
 
-        [HttpGet("roles/{userId}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IList<string>>> GetUserRoles(string userId)
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<ActionResult<ReturnedUserProfileDTO>> GetProfile()
         {
-            var roles = await userService.GetUserRolesAsync(userId);
-            return Ok(roles);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            return Ok(new ReturnedUserProfileDTO
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber
+            });
         }
 
-        [HttpPost("roles/{userId}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AddUserToRole(string userId, [FromBody] string role)
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile(UpdateProfileDTO model)
         {
-            if (!Roles.All.Contains(role))
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            // Only update username if provided
+            if (!string.IsNullOrEmpty(model.UserName))
             {
-                return BadRequest(new { message = "Invalid role" });
+                var existingUser = await userManager.FindByNameAsync(model.UserName);
+                if (existingUser != null && existingUser.Id != userId)
+                    return BadRequest(new { message = "Username is already taken" });
+                user.UserName = model.UserName;
             }
 
-            var result = await userService.AddToRoleAsync(userId, role);
-            if (!result)
+            // Only update phone number if provided
+            if (!string.IsNullOrEmpty(model.PhoneNumber))
             {
-                return BadRequest(new { message = "Failed to add role to user" });
+                user.PhoneNumber = model.PhoneNumber;
             }
 
-            return Ok();
+            // Only update full name if provided
+            if (!string.IsNullOrEmpty(model.FullName))
+            {
+                user.FullName = model.FullName;
+            }
+
+            var result = await userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return NoContent();
         }
 
-        [HttpDelete("roles/{userId}/{role}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> RemoveUserFromRole(string userId, string role)
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
         {
-            if (!Roles.All.Contains(role))
-            {
-                return BadRequest(new { message = "Invalid role" });
-            }
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized();
 
-            var result = await userService.RemoveFromRoleAsync(userId, role);
-            if (!result)
-            {
-                return BadRequest(new { message = "Failed to remove role from user" });
-            }
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
 
-            return Ok();
+            var result = await userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return NoContent();
         }
     }
 }

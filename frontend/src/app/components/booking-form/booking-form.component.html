@@ -1,0 +1,63 @@
+<div class="booking-form">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+    </div>
+
+    <div class="mb-3">
+      <label for="bookingDate" class="form-label">Date</label>
+      <input
+        type="date"
+        class="form-control"
+        id="bookingDate"
+        formControlName="bookingDate"
+        [min]="minDate"
+        [class.is-invalid]="
+          form.get('bookingDate')?.invalid && form.get('bookingDate')?.touched
+        "
+      />
+      <div
+        class="invalid-feedback"
+        *ngIf="form.get('bookingDate')?.errors?.['required']"
+      >
+        Date is required
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="bookingTime" class="form-label">Time</label>
+      <input
+        type="time"
+        class="form-control"
+        id="bookingTime"
+        formControlName="bookingTime"
+        [class.is-invalid]="
+          form.get('bookingTime')?.invalid && form.get('bookingTime')?.touched
+        "
+      />
+      <div
+        class="invalid-feedback"
+        *ngIf="form.get('bookingTime')?.errors?.['required']"
+      >
+        Time is required
+      </div>
+    </div>
+
+    <div class="d-grid gap-2">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="form.invalid || loading"
+      >
+        <span
+          *ngIf="loading"
+          class="spinner-border spinner-border-sm me-1"
+        ></span>
+        Book Appointment
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
