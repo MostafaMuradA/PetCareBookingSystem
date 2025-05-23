@@ -174,7 +174,7 @@ namespace PetCareBookingSystem.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Customer")]
         public async Task<IActionResult> Delete(int id)
         {
             var booking = await repository.GetById(id);

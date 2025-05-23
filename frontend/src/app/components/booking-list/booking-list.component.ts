@@ -30,10 +30,10 @@ export class BookingListComponent implements OnInit {
   }
 
   loadBookings(): void {
+    debugger
     this.loading = true;
-    const bookingsObservable = this.isAdmin ?
-      this.bookingService.getAllBookings() :
-      this.bookingService.getMyBookings();
+    const bookingsObservable =
+      this.bookingService.getAllBookings()
 
     bookingsObservable.subscribe({
       next: (data) => {

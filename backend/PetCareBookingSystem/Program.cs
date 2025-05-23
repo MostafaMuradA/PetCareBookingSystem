@@ -61,6 +61,7 @@ namespace PetCareBookingSystem
 
             builder.Services.AddScoped<IPetServiceRepository, PetServiceRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
             var app = builder.Build();
 
